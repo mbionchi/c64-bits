@@ -36,5 +36,3 @@ areg     lda #$00   ; restore regs
 xreg     ldx #$00
 yreg     ldy #$00
          rti
-
-d
