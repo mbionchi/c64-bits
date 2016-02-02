@@ -45,6 +45,11 @@ cmprastr
         lda $d016
         ora #$07
         sta $d016
+        jmp shiftchars
+shiftrastr
+        dec $d016
+        jmp endscroll
+shiftchars
         ldx #$00
 loop0
         lda $0771,x
@@ -63,8 +68,7 @@ putchar
         sta $0797
         inc txtoffs+1
         inc $d020
-shiftrastr
-        dec $d016
+endscroll
 
 rega    lda #$00
 regx    ldx #$de
