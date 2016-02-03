@@ -45,28 +45,31 @@ irq
         lda $d016   ; reset raster and
         ora #$07    ; then shift chars
         sta $d016
-        ldx #$00
-loop0
+
+        ldx #$00    ; shift existing
+loop0               ; characters
         lda $0771,x
         sta $0770,x
         inx
         cpx #$28
         bne loop0
-txtoffs ldx #$00
+
+txtoffs ldx #$00    ; add a new char
         cpx #$09
         beq endall
-
-        lda textdata,x  ; add a new char
+        lda textdata,x
         sta $0797
-        inc txtoffs+1
-shiftrastr
-        dec $d016
+        inx
+        stx txtoffs+1
+shiftrastr          ; horizontal raster
+        dec $d016   ; shift
         jmp endall2
 endall
-        lda #$00
-        cmp #$28
-        beq what1
-        inc endall+1
+        ldx #$00    ; a little thingy to
+        cpx #$28    ; see whether text's
+        beq what1   ; travelled 40 chars
+        inx
+        stx endall+1
         jmp endall2
 what1
         ; scroller over: what do now?
