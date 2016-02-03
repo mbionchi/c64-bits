@@ -37,13 +37,13 @@ irq
         stx regx+1
         sty regy+1
         lsr $d019
-cmprastr
-        lda $d016
-        and #$07
+
+        lda $d016   ; check if we can
+        and #$07    ; shift $d016
         cmp #$00
         bne shiftrastr
-        lda $d016
-        ora #$07
+        lda $d016   ; reset raster and
+        ora #$07    ; then shift chars
         sta $d016
         ldx #$00
 loop0
@@ -53,18 +53,24 @@ loop0
         cpx #$28
         bne loop0
 txtoffs ldx #$00
-        cpx #$40
-        bmi putchar
-        ldx #$00
-        stx txtoffs+1
-putchar
-        lda textdata,x
-        and #$3f
+        cpx #$09
+        beq endall
+
+        lda textdata,x  ; add a new char
         sta $0797
         inc txtoffs+1
-        inc $d020
 shiftrastr
         dec $d016
+        jmp endall2
+endall
+        lda #$00
+        cmp #$28
+        beq what1
+        inc endall+1
+        jmp endall2
+what1
+        ; scroller over: what do now?
+endall2
 
 rega    lda #$00
 regx    ldx #$de
@@ -72,7 +78,4 @@ regy    ldy #$ad
         rti
 
 textdata
-        !scr "haha this is jus"
-        !scr "t another scroll"
-        !scr "er...brought to "
-        !scr "you by 0xb00f..."
+        !scr "meow meow"
