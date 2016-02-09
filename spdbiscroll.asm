@@ -1,6 +1,12 @@
         !cpu 6502
         !to "ts.prg",cbm
+
         *= $1000
+        !bin "res/blaster.sid",,$7c+2
+        sid_init = $1000
+        sid_play = $1003
+
+        *= $2000
         scrmem = $0770
 start
         lda #$20
@@ -11,6 +17,8 @@ clr     sta $0400,x
         sta $06e8,x
         inx
         bne clr
+
+        jsr sid_init
 
         sei
         lda #$7f
@@ -38,6 +46,8 @@ irq
         stx regx+1
         sty regy+1
         lsr $d019
+
+        jsr sid_play
 
         lda $d016
         and #$07
@@ -77,6 +87,32 @@ rega    lda #$00
 regx    ldx #$de
 regy    ldy #$ad
         rti
+
+change_dir
+        lda rstcmp+1
+        eor #$07
+        sta rstcmp+1
+        lda rstres
+        eor #$20
+        sta rstres
+        lda rstres+1
+        eor #$ff
+        sta rstres+1
+        ; proper shift routine fix please
+        lda shifttext0+1
+        eor #$02
+        lda #<shifttext0
+        sta shift2+1
+        lda #>shifttext0
+        sta shift2+2
+        ; end proper shift fix
+        lda putchr+1
+        eor #$e7
+        sta putchr+1
+        lda shiftrastr
+        eor #$20
+        sta shiftrastr
+        rts
 
 scroll_ltr
         lda #$07
