@@ -3,15 +3,6 @@
 
         *= $1000
 start
-;        lda #$20
-;        ldx #$00
-;clr     sta $0400,x
-;        sta $0500,x
-;        sta $0600,x
-;        sta $06e8,x
-;        inx
-;        bne clr
-;
         sei
         lda #$7f
         sta $dc0d
@@ -20,11 +11,11 @@ start
         lda $dd0d
         lda #$01
         sta $d01a
-        lda #$00
+        lda #$f8
         sta $d012
-        lda #<irq
+        lda #<irqmain
         sta $fffe
-        lda #>irq
+        lda #>irqmain
         sta $ffff
         lda #$1b
         sta $d011
@@ -35,142 +26,204 @@ start
         sta $07f9
         sta $07fa
         sta $07fb
-        lda #$0f
+        sta $07fc
+        sta $07fd
+        sta $07fe
+        sta $07ff
+        lda #$ff
         sta $d015
-        lda #$f0
-        sta $d000
-        lda #$f4
-        sta $d002
-        lda #$f8
-        sta $d004
-        lda #$fc
-        sta $d006
         lda #$01
         sta $d027
         sta $d028
         sta $d029
         sta $d02a
+        sta $d02b
+        sta $d02c
+        sta $d02d
+        sta $d02e
+        sta $d02f
         cli
         jmp *
 
-irq
-        sta rega+1
-        stx regx+1
-        sty regy+1
+
+advspr
+        lda ytable,x
+        sta $d001,y
+        lda xtable,x
+        sta $d000,y
+        rts
 
 
-        ; spr 0
-offset0 ldx #$00
-        lda table,x
-        sta $d001
+irqmain
+        pha
+        txa
+        pha
+        tya
+        pha
+
+nextirl lda #<irqspr
+        sta $fffe
+nextirh lda #>irqspr
+        sta $ffff
+
+        inc $d012
+        lda #$01
+        sta $d019
+        tsx
+        cli
+
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+
+irqspr
+        txs
+        ldx #$08
+        dex
+        bne *-1
+        bit $00
+        lda $d012
+        cmp $d012
+        beq *+2
+
+        lda #$13    ;open t/b borders
+        sta $d011
+
+        ldy #$00    ;spr0
+off0    ldx #$00
+        jsr advspr
         inx
-        stx offset0+1
-
-        ldx $d000
-indec0  inx
-cpxval0 cpx #$ff
-        bne store0
-        lda indec0
-        eor #$22
-        sta indec0
-        lda cpxval0+1
-        eor #$ff
-        sta cpxval0+1
-store0
-        stx $d000
-
-
-        ; spr 1
-offset1 ldx #$04
-        lda table,x
-        sta $d003
+        stx off0+1
+        ldy #$02    ;spr1
+off1    ldx #$08
+        jsr advspr
         inx
-        stx offset1+1
-
-        ldx $d002
-indec1  inx
-cpxval1 cpx #$ff
-        bne store1
-        lda indec1
-        eor #$22
-        sta indec1
-        lda cpxval1+1
-        eor #$ff
-        sta cpxval1+1
-store1
-        stx $d002
-
-
-        ; spr 2
-offset2 ldx #$08
-        lda table,x
-        sta $d005
+        stx off1+1
+        ldy #$04    ;spr2
+off2    ldx #$10
+        jsr advspr
         inx
-        stx offset2+1
-
-        ldx $d004
-indec2  inx
-cpxval2 cpx #$ff
-        bne store2
-        lda indec2
-        eor #$22
-        sta indec2
-        lda cpxval2+1
-        eor #$ff
-        sta cpxval2+1
-store2
-        stx $d004
-
-
-        ; spr 3
-offset3 ldx #$0c
-        lda table,x
-        sta $d007
+        stx off2+1
+        ldy #$06    ;spr3
+off3    ldx #$18
+        jsr advspr
         inx
-        stx offset3+1
+        stx off3+1
+        ldy #$08    ;spr4
+off4    ldx #$20
+        jsr advspr
+        inx
+        stx off4+1
+        ldy #$0a    ;spr5
+off5    ldx #$28
+        jsr advspr
+        inx
+        stx off5+1
+        ldy #$0c    ;spr6
+off6    ldx #$30
+        jsr advspr
+        inx
+        stx off6+1
+        ldy #$0e    ;spr7
+off7    ldx #$38
+        jsr advspr
+        inx
+        stx off7+1
 
-        ldx $d006
-indec3  inx
-cpxval3 cpx #$ff
-        bne store3
-        lda indec3
-        eor #$22
-        sta indec3
-        lda cpxval3+1
-        eor #$ff
-        sta cpxval3+1
-store3
-        stx $d006
-
+        lda #$00
+        sta $d012
+        lda #<irqmain
+        sta $fffe
+        lda #>irqmain
+        sta $ffff
+        lda #<irqfix
+        sta nextirl+1
+        lda #>irqfix
+        sta nextirh+1
 
         lda #$01
         sta $d019
-rega    lda #$00
-regx    ldx #$de
-regy    ldy #$ad
+        pla
+        tay
+        pla
+        tax
+        pla
+        rti
+
+
+irqfix
+        txs
+        ldx #$08
+        dex
+        bne *-1
+        bit $00
+        lda $d012
+        cmp $d012
+        beq *+2
+
+        lda #$3b    ;reset mode
+        sta $d011
+
+        lda #$f8    ;setup for next irq
+        sta $d012
+        lda #<irqmain
+        sta $fffe
+        lda #>irqmain
+        sta $ffff
+        lda #<irqspr
+        sta nextirl+1
+        lda #>irqspr
+        sta nextirh+1
+
+        lda #$01
+        sta $d019
+        pla
+        tay
+        pla
+        tax
+        pla
         rti
 
         *= $2000
-        !bin "res/sprite1.prg"
-        !bin "res/sprite1.prg"
-        !bin "res/sprite1.prg"
-        !bin "res/sprite1.prg"
+        !bin "res/dot.spr"
 
-table
-!byte $96,$93,$91,$8E,$8C,$89,$87,$85,$82,$80,$7E,$7C,$7A,$78,$76,$74
-!byte $72,$70,$6F,$6D,$6C,$6A,$69,$68,$67,$66,$66,$65,$64,$64,$64,$64
-!byte $64,$64,$64,$64,$65,$65,$66,$67,$68,$69,$6A,$6B,$6C,$6E,$6F,$71
-!byte $73,$75,$77,$79,$7B,$7D,$7F,$81,$83,$86,$88,$8A,$8D,$8F,$92,$94
-!byte $97,$99,$9C,$9E,$A1,$A3,$A5,$A8,$AA,$AC,$AE,$B0,$B2,$B4,$B6,$B8
-!byte $BA,$BC,$BD,$BF,$C0,$C1,$C2,$C3,$C4,$C5,$C6,$C6,$C7,$C7,$C7,$C7
-!byte $C7,$C7,$C7,$C7,$C6,$C5,$C5,$C4,$C3,$C2,$C1,$BF,$BE,$BC,$BB,$B9
-!byte $B7,$B5,$B3,$B1,$AF,$AD,$AB,$A9,$A6,$A4,$A2,$9F,$9D,$9A,$98,$96
+xtable
+!byte $50,$50,$50,$50,$50,$50,$50,$51,$51,$52,$52,$53,$53,$54,$55,$55
+!byte $56,$57,$58,$59,$5A,$5B,$5C,$5D,$5E,$60,$61,$62,$64,$65,$66,$68
+!byte $69,$6B,$6C,$6E,$70,$71,$73,$75,$77,$78,$7A,$7C,$7E,$80,$82,$84
+!byte $86,$88,$8A,$8C,$8E,$90,$92,$94,$96,$99,$9B,$9D,$9F,$A1,$A3,$A5
+!byte $A8,$AA,$AC,$AE,$B0,$B2,$B4,$B7,$B9,$BB,$BD,$BF,$C1,$C3,$C5,$C7
+!byte $C9,$CB,$CD,$CF,$D1,$D3,$D5,$D6,$D8,$DA,$DC,$DD,$DF,$E1,$E2,$E4
+!byte $E5,$E7,$E8,$EA,$EB,$ED,$EE,$EF,$F0,$F1,$F3,$F4,$F5,$F6,$F6,$F7
+!byte $F8,$F9,$FA,$FA,$FB,$FC,$FC,$FD,$FD,$FD,$FE,$FE,$FE,$FE,$FE,$FE
+!byte $FE,$FE,$FE,$FE,$FE,$FE,$FD,$FD,$FD,$FC,$FC,$FB,$FA,$FA,$F9,$F8
+!byte $F7,$F6,$F6,$F5,$F4,$F3,$F1,$F0,$EF,$EE,$ED,$EB,$EA,$E8,$E7,$E5
+!byte $E4,$E2,$E1,$DF,$DD,$DC,$DA,$D8,$D6,$D5,$D3,$D1,$CF,$CD,$CB,$C9
+!byte $C7,$C5,$C3,$C1,$BF,$BD,$BB,$B9,$B7,$B4,$B2,$B0,$AE,$AC,$AA,$A8
+!byte $A5,$A3,$A1,$9F,$9D,$9B,$99,$96,$94,$92,$90,$8E,$8C,$8A,$88,$86
+!byte $84,$82,$80,$7E,$7C,$7A,$78,$77,$75,$73,$71,$70,$6E,$6C,$6B,$69
+!byte $68,$66,$65,$64,$62,$61,$60,$5E,$5D,$5C,$5B,$5A,$59,$58,$57,$56
+!byte $55,$55,$54,$53,$53,$52,$52,$51,$51,$50,$50,$50,$50,$50,$50,$50
 
-!byte $96,$97,$98,$99,$9A,$9C,$9D,$9E,$9F,$A0,$A1,$A2,$A3,$A4,$A5,$A6
-!byte $A7,$A8,$A9,$AA,$AA,$AB,$AC,$AC,$AD,$AD,$AD,$AE,$AE,$AE,$AE,$AE
-!byte $AE,$AE,$AE,$AE,$AE,$AE,$AD,$AD,$AC,$AC,$AB,$AB,$AA,$A9,$A9,$A8
-!byte $A7,$A6,$A5,$A4,$A3,$A2,$A1,$A0,$9F,$9D,$9C,$9B,$9A,$99,$97,$96
-!byte $95,$94,$92,$91,$90,$8F,$8E,$8C,$8B,$8A,$89,$88,$87,$86,$85,$84
-!byte $83,$82,$82,$81,$80,$80,$7F,$7F,$7E,$7E,$7D,$7D,$7D,$7D,$7D,$7D
-!byte $7D,$7D,$7D,$7D,$7D,$7E,$7E,$7E,$7F,$7F,$80,$81,$81,$82,$83,$84
-!byte $85,$86,$87,$88,$89,$8A,$8B,$8C,$8D,$8E,$8F,$91,$92,$93,$94,$96
+ytable
+!byte $A7,$A5,$A3,$A1,$9E,$9C,$9A,$98,$96,$94,$92,$90,$8E,$8B,$89,$87
+!byte $85,$83,$81,$80,$7E,$7C,$7A,$78,$76,$74,$73,$71,$6F,$6E,$6C,$6A
+!byte $69,$67,$66,$65,$63,$62,$61,$5F,$5E,$5D,$5C,$5B,$5A,$59,$58,$57
+!byte $56,$55,$54,$54,$53,$53,$52,$52,$51,$51,$50,$50,$50,$50,$50,$50
+!byte $50,$50,$50,$50,$50,$50,$51,$51,$51,$52,$52,$53,$53,$54,$55,$56
+!byte $56,$57,$58,$59,$5A,$5B,$5C,$5D,$5F,$60,$61,$62,$64,$65,$67,$68
+!byte $6A,$6B,$6D,$6E,$70,$72,$74,$75,$77,$79,$7B,$7D,$7F,$80,$82,$84
+!byte $86,$88,$8A,$8C,$8F,$91,$93,$95,$97,$99,$9B,$9D,$9F,$A2,$A4,$A6
+!byte $A8,$AA,$AC,$AF,$B1,$B3,$B5,$B7,$B9,$BB,$BD,$BF,$C2,$C4,$C6,$C8
+!byte $CA,$CC,$CE,$CF,$D1,$D3,$D5,$D7,$D9,$DA,$DC,$DE,$E0,$E1,$E3,$E4
+!byte $E6,$E7,$E9,$EA,$EC,$ED,$EE,$EF,$F1,$F2,$F3,$F4,$F5,$F6,$F7,$F8
+!byte $F8,$F9,$FA,$FB,$FB,$FC,$FC,$FD,$FD,$FD,$FE,$FE,$FE,$FE,$FE,$FE
+!byte $FE,$FE,$FE,$FE,$FE,$FE,$FD,$FD,$FC,$FC,$FB,$FB,$FA,$FA,$F9,$F8
+!byte $F7,$F6,$F5,$F4,$F3,$F2,$F1,$F0,$EF,$ED,$EC,$EB,$E9,$E8,$E7,$E5
+!byte $E4,$E2,$E0,$DF,$DD,$DB,$DA,$D8,$D6,$D4,$D2,$D0,$CE,$CD,$CB,$C9
+!byte $C7,$C5,$C3,$C0,$BE,$BC,$BA,$B8,$B6,$B4,$B2,$B0,$AD,$AB,$A9,$A7
