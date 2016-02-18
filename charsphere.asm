@@ -11,6 +11,10 @@ clr     sta $0400,x
         inx
         bne clr
 
+        lda #$00
+        sta $d020
+        sta $d021
+
         jsr drawsphere
 
         sei
