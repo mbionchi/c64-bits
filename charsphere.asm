@@ -40,80 +40,66 @@ clr     sta $0400,x
         cli
         jmp *
 
+        sphereloc = $04ac
 drawsphere
         ldx #$00
 draw
 hhh0    lda #$00
-        sta $0400,x
-hhh1    lda #$10
-        sta $0428,x
-hhh2    lda #$20
-        sta $0450,x
-hhh3    lda #$30
-        sta $0478,x
-hhh4    lda #$40
-        sta $04a0,x
-hhh5    lda #$50
-        sta $04c8,x
-hhh6    lda #$60
-        sta $04f0,x
-hhh7    lda #$70
-        sta $0518,x
-hhh8    lda #$80
-        sta $0540,x
-hhh9    lda #$90
-        sta $0568,x
-hhha    lda #$a0
-        sta $0590,x
-hhhb    lda #$b0
-        sta $05b8,x
-hhhc    lda #$c0
-        sta $05e0,x
-hhhd    lda #$d0
-        sta $0608,x
-hhhe    lda #$e0
-        sta $0630,x
-hhhf    lda #$f0
-        sta $0658,x
+        sta sphereloc,x
+        adc #$10
+        sta sphereloc+40,x
+        adc #$10
+        sta sphereloc+80,x
+        adc #$10
+        sta sphereloc+120,x
+        adc #$10
+        sta sphereloc+160,x
+        adc #$10
+        sta sphereloc+200,x
+        adc #$10
+        sta sphereloc+240,x
+        adc #$10
+        sta sphereloc+280,x
+        adc #$10
+        sta sphereloc+320,x
+        adc #$10
+        sta sphereloc+360,x
+        adc #$10
+        sta sphereloc+400,x
+        adc #$10
+        sta sphereloc+440,x
+        adc #$10
+        sta sphereloc+480,x
+        adc #$10
+        sta sphereloc+520,x
+        adc #$10
+        sta sphereloc+560,x
+        adc #$10
+        sta sphereloc+600,x
         inx
         inc hhh0+1
-        inc hhh1+1
-        inc hhh2+1
-        inc hhh3+1
-        inc hhh4+1
-        inc hhh5+1
-        inc hhh6+1
-        inc hhh7+1
-        inc hhh8+1
-        inc hhh9+1
-        inc hhha+1
-        inc hhhb+1
-        inc hhhc+1
-        inc hhhd+1
-        inc hhhe+1
-        inc hhhf+1
         cpx #$10
         beq quit
         jmp draw
 quit
         rts
 
-        row0col = $d800     ; 0
-        row1col = $d828     ; 1
-        row2col = $d850     ; 2
-        row3col = $d878     ; 3
-        row4col = $d8a0     ; 4
-        row5col = $d8c8     ; 5
-        row6col = $d8f0     ; 6
-        row7col = $d918     ; 7
-        row8col = $d940     ; 8
-        row9col = $d968     ; 9
-        rowacol = $d990     ; a
-        rowbcol = $d9b8     ; b
-        rowccol = $d9e0     ; c
-        rowdcol = $da08     ; d
-        rowecol = $da30     ; e
-        rowfcol = $da58     ; f
+        row0col = $d8ac
+        row1col = row0col+40
+        row2col = row1col+40
+        row3col = row2col+40
+        row4col = row3col+40
+        row5col = row4col+40
+        row6col = row5col+40
+        row7col = row6col+40
+        row8col = row7col+40
+        row9col = row8col+40
+        rowacol = row9col+40
+        rowbcol = rowacol+40
+        rowccol = rowbcol+40
+        rowdcol = rowccol+40
+        rowecol = rowdcol+40
+        rowfcol = rowecol+40
 
 shiftcols
         ; begin horrible speedcode
@@ -460,37 +446,65 @@ irq
         stx regx+1
         sty regy+1
 
+        jmp xoffs
+
 xoffs   ldx #$00
         jsr shiftcols
-        lda coltable,x
+        lda row0coltable,x
         sta row0col+10
+        lda row1coltable,x
         sta row1col+12
+        lda row2coltable,x
         sta row2col+12
+        lda row3coltable,x
         sta row3col+13
+        lda row4coltable,x
         sta row4col+14
+        lda row56coltable,x
         sta row5col+15
         sta row5col+14
         sta row6col+15
         sta row6col+14
+        lda row78coltable,x
         sta row7col+15
         sta row7col+14
         sta row8col+15
         sta row8col+14
+        lda row9acoltable,x
         sta row9col+15
         sta row9col+14
         sta rowacol+15
         sta rowacol+14
+        lda rowbcoltable,x
         sta rowbcol+14
+        lda rowccoltable,x
         sta rowccol+13
+        lda rowdcoltable,x
         sta rowdcol+12
+        lda rowecoltable,x
         sta rowecol+12
+        lda rowfcoltable,x
         sta rowfcol+10
         inx
-        cpx #$0f
-        bne goon
-        ldx #00
-goon
         stx xoffs+1
+
+        lda #<nada0
+        sta xoffs-2
+        lda #>nada0
+        sta xoffs-1
+        jmp done
+nada0
+        lda #<nada1
+        sta xoffs-2
+        lda #>nada1
+        sta xoffs-1
+        jmp done
+nada1
+        lda #<xoffs
+        sta xoffs-2
+        lda #>xoffs
+        sta xoffs-1
+done
 
         lda #$01
         sta $d019
@@ -499,8 +513,22 @@ regx    ldx #$de
 regy    ldy #$ad
         rti
 
-coltable
-        !byte $f,$f,$f,$f,$3,$3,$3,$3,$d,$d,$d,$d,$7,$7,$7,$7
 
         *= $2000
         !bin "res/halfsphere.map"
+
+    ; god this is awful....
+
+row0coltable  !byte $7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7
+row1coltable  !byte $7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d
+row2coltable  !byte $d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d
+row3coltable  !byte $d,$d,$7,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$1,$d,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$1,$d,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d
+row4coltable  !byte $d,$d,$b,$b,$7,$1,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$1,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d
+row56coltable !byte $d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d
+row78coltable !byte $d,$d,$d,$b,$b,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$7,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$7,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$7,$b,$b,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d
+row9acoltable !byte $d,$d,$d,$d,$d,$d,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$b,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$b,$b,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d
+rowbcoltable  !byte $d,$d,$b,$b,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$b,$b,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d
+rowccoltable  !byte $d,$d,$d,$b,$b,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$b,$b,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$b,$b,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$b,$b,$b,$b,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d
+rowdcoltable  !byte $d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d
+rowecoltable  !byte $d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d
+rowfcoltable  !byte $d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$d,$7,$7,$1,$d,$d
