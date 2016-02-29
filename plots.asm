@@ -74,25 +74,25 @@ irqmain
     tya
     pha
 
-whatdot
+    lda #$00
+    sta $d020
     ldx #$00
-    ldy dotsy,x
     clc
+loopy1
+    ldy dotsy,x
     jsr plotdot
     inx
-    bne skippy
-
-    lda whatdot+5
-    eor #$20
-    sta whatdot+5
-    ldy whatdot+4
-    iny
-    sty whatdot+4
-
-skippy
-    stx whatdot+1
-
-    lda #$01
+bne loopy1
+loopy2
+    ldy dotsy+1,x
+    sec
+    jsr plotdot
+    inx
+    cpx #$40
+    bne loopy2
+    lda #$02
+    sta $d020
+lda #$01
     sta $d019
     pla
     tay
@@ -122,6 +122,27 @@ carryshift
     ora ($fb),y
     sta ($fb),y
     rts
+
+
+cleardot ; x,y = coords
+         ; carry = shift 256 px >>
+    lda y_tbl_lo,y
+    sta $fb
+    bcs carryshift
+    lda y_tbl_hi,y
+    sta $fc
+    ldy x_tbl,x
+    lda #$00
+    sta ($fb),y
+    rts
+carryshift
+    lda y_tbl_hi+256,y
+    sta $fc
+    ldy x_tbl,x
+    lda #$00
+    sta ($fb),y
+    rts
+
 
 !align 255,0
 dotsy
